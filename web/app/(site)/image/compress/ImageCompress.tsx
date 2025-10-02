@@ -7,8 +7,9 @@ import {
   createInstruction,
   Instruction,
   InstructionFile,
-  createInstructionDetails, getInstructionDetails
-} from "@/services/images";
+  createInstructionDetails,
+  getInstructionDetails,
+} from "@/app/(site)/image/compress/actions";
 import useNotification from "@/hooks/useNotification";
 import ListFiles from "@/app/(site)/image/compress/ListFiles";
 import Loading from "@/components/feedback/Loading";

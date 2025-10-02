@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useMemo, useState } from "react";
 
-import { Product } from "@/services/images";
+import { Product } from "@/types/product";
 
 type ProductContextType = {
   products: Product[];

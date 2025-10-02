@@ -1,9 +1,10 @@
+"use client";
+
 import Button from "@/components/actions/button";
-import { loginByGoogle } from "@/services/auth";
 
 function GoogleSignInButton() {
   return (
-      <Button onClick={loginByGoogle} xVariant="outline">
+      <Button onClick={() => { window.location.href = "/api/auth/google"; }} xVariant="outline">
         <div className="flex items-center justify-center gap-2">
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path

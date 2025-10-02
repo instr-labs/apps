@@ -1,0 +1,56 @@
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const base = process.env.GATEWAY_URL;
+  if (!base) return NextResponse.json({ message: "GATEWAY_URL is not configured", data: null, errors: null }, { status: 500 });
+  const { id } = params;
+  const url = base.replace(/\/$/, "") + `/images/instructions/${id}/details`;
+  const cookie = req.headers.get("cookie") ?? "";
+  const origin = req.headers.get("origin") ?? new URL(req.url).origin;
+
+  const upstream = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin },
+    cache: "no-store",
+  });
+
+  const text = await upstream.text();
+  const res = new NextResponse(text, {
+    status: upstream.status,
+    headers: { "content-type": upstream.headers.get("content-type") ?? "application/json; charset=utf-8" },
+  });
+  const setCookie = upstream.headers.get("set-cookie");
+  if (setCookie) res.headers.set("set-cookie", setCookie);
+  return res;
+}
+
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const base = process.env.GATEWAY_URL;
+  if (!base) return NextResponse.json({ message: "GATEWAY_URL is not configured", data: null, errors: null }, { status: 500 });
+  const { id } = params;
+  const url = base.replace(/\/$/, "") + `/images/instructions/${id}/details`;
+  const cookie = req.headers.get("cookie") ?? "";
+  const origin = req.headers.get("origin") ?? new URL(req.url).origin;
+
+  const incomingForm = await req.formData();
+  const form = new FormData();
+  const file = incomingForm.get("file");
+  if (file instanceof Blob) {
+    form.append("file", file, (file as any).name ?? "file");
+  }
+
+  const upstream = await fetch(url, {
+    method: "POST",
+    headers: { Cookie: cookie, Origin: origin },
+    body: form,
+  });
+
+  const text = await upstream.text();
+  const res = new NextResponse(text, {
+    status: upstream.status,
+    headers: { "content-type": upstream.headers.get("content-type") ?? "application/json; charset=utf-8" },
+  });
+  const setCookie = upstream.headers.get("set-cookie");
+  if (setCookie) res.headers.set("set-cookie", setCookie);
+  return res;
+}

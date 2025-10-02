@@ -1,10 +1,12 @@
+"use client";
+
 import ImagePreview from "@/components/ImagePreview";
 import { bytesToString } from "@/utils/bytesToString";
 import CloseIcon from "@/components/icons/CloseIcon";
 import Chip from "@/components/chip";
 import ButtonIcon from "@/components/actions/button-icon";
 import DownloadIcon from "@/components/icons/DownloadIcon";
-import { InstructionFile, getInstructionFileBytes } from "@/services/images";
+import { InstructionFile } from "@/app/(site)/image/compress/actions";
 import Button from "@/components/actions/button";
 
 export default function ListFiles(props: {
@@ -15,31 +17,10 @@ export default function ListFiles(props: {
   inputFiles?: InstructionFile[];
   outputFiles?: InstructionFile[];
 }) {
-  const handleDownload = async (output: InstructionFile) => {
-    const res = await getInstructionFileBytes(output.instruction_id, output.id);
-    if (!res?.success || !res.data) {
-      console.error("Failed to download file:", res?.message);
-      return;
-    }
-
-    const filename = output.original_name;
-    const lower = filename.toLowerCase();
-    let mime = "application/octet-stream";
-    if (lower.endsWith(".png")) mime = "image/png";
-    else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mime = "image/jpeg";
-    else if (lower.endsWith(".webp")) mime = "image/webp";
-    else if (lower.endsWith(".gif")) mime = "image/gif";
-    else if (lower.endsWith(".svg")) mime = "image/svg+xml";
-
-    const blob = new Blob([res.data], { type: mime });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+  const handleDownload = (output: InstructionFile) => {
+    const url = `/image/compress/download/${output.instruction_id}/${output.id}`;
+    // open in a new tab to let the browser handle the download
+    window.open(url, "_blank");
   };
 
   return (

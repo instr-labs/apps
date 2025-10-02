@@ -3,7 +3,7 @@
 import React, {createContext, useContext, useEffect, useMemo, useState} from "react";
 import { redirect } from "next/navigation";
 
-import { User, getProfile, refresh as refreshToken } from "@/services/auth";
+import { User } from "@/types/user";
 
 
 type ProfileContextType = {
@@ -23,11 +23,18 @@ export function ProfileProvider({ children, data }: {
 
   useEffect(() => {
     async function refreshProfile() {
-      await refreshToken();
-      const { success, data } = await getProfile();
-
-      if (!success) redirect("/login");
-      setProfileData((data as { user: User } | null)?.user ?? null);
+      try {
+        await fetch("/api/auth/refresh", { method: "POST" });
+        const res = await fetch("/api/auth/profile", { method: "GET" });
+        const json = await res.json();
+        if (!json?.success) {
+          redirect("/login");
+          return;
+        }
+        setProfileData((json.data as { user: User } | null)?.user ?? null);
+      } catch (_) {
+        redirect("/login");
+      }
     }
 
     if (!profileData) {

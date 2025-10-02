@@ -9,7 +9,7 @@ import Chip from "@/components/chip";
 import MenuButton from "@/components/actions/menu-button";
 import HashtagIcon from "@/components/icons/hashtag";
 import {useProduct} from "@/hooks/useProduct";
-import {Product} from "@/services/images";
+import { Product } from "@/types/product";
 
 type Section = {
   key: string;

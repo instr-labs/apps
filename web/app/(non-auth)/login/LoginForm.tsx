@@ -6,16 +6,17 @@ import { useForm } from "react-hook-form";
 import Button from "@/components/actions/button";
 import TextField from "@/components/inputs/text-field";
 import InputPin from "@/components/inputs/input-pin";
-import { login, sendPin } from "@/services/auth";
+
 import useNotification from "@/hooks/useNotification";
 import InlineSpinner from "@/components/feedback/InlineSpinner";
-import { redirect, RedirectType } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type FormEmailValues = {
   email: string;
 };
 
 export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [state, setState] = React.useState<"email" | "pin">("email");
   return (
@@ -24,7 +25,7 @@ export default function LoginForm() {
         <FormEmail setEmail={setEmail} next={() => { setState("pin") }} />
       )}
       {state === "pin" && (
-        <FormPin email={email} next={() => redirect("/", RedirectType.replace) } />
+        <FormPin email={email} next={() => router.replace("/") } />
       )}
     </>
   )
@@ -49,16 +50,24 @@ function FormEmail({ setEmail, next }: {
     setLoading(true);
 
     try {
-      const { success, message } = await sendPin({ email: values.email });
-      if (success) {
-        setEmail(values.email)
-        next()
+      const res = await fetch("/api/auth/send-pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: values.email }),
+      });
+      const json = await res.json();
+      console.log("res", json);
+      if (json.success) {
+        setEmail(values.email);
+        next();
       } else {
         showNotification({
           type: "error",
-          message: message,
-        })
+          message: json.message || "Failed to send PIN",
+        });
       }
+    } catch (e) {
+      showNotification({ type: "error", message: e instanceof Error ? e.message : "Failed to send PIN" });
     } finally {
       setLoading(false);
     }
@@ -107,15 +116,22 @@ function FormPin({ email, next }: {
     setLoading(true);
 
     try {
-    const { success, message} = await login({ email, pin: values.join("") });
-      if (success) {
-        next()
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, pin: values.join("") }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        next();
       } else {
         showNotification({
           type: "error",
-          message: message,
-        })
+          message: json.message || "Login failed",
+        });
       }
+    } catch (e) {
+      showNotification({ type: "error", message: e instanceof Error ? e.message : "Login failed" });
     } finally {
       setLoading(false);
     }

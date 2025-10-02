@@ -5,7 +5,6 @@ import { redirect, RedirectType } from "next/navigation";
 
 import { useProfile } from "@/hooks/useProfile";
 import MenuButton from "@/components/actions/menu-button";
-import { logout } from "@/services/auth";
 
 export default function ProfileOverlay() {
   const { profile } = useProfile();
@@ -22,7 +21,16 @@ export default function ProfileOverlay() {
             Dashboard
           </MenuButton>
           <hr className="my-2" />
-          <MenuButton xSize="sm" onClick={logout}>
+          <MenuButton
+            xSize="sm"
+            onClick={async () => {
+              try {
+                await fetch("/api/auth/logout", { method: "POST" });
+              } finally {
+                redirect("/login", RedirectType.replace);
+              }
+            }}
+          >
             Logout
           </MenuButton>
           <hr className="my-2" />
