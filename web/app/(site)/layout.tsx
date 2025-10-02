@@ -2,9 +2,6 @@
 
 import React, { Suspense } from "react";
 
-// Replaced server actions with server-side fetch to internal API routes
-import { headers } from "next/headers";
-
 import { ProductProvider } from "@/hooks/useProduct";
 import { ProfileProvider } from "@/hooks/useProfile";
 import { OverlayProvider } from "@/hooks/useOverlay";
@@ -14,28 +11,22 @@ import { SSEProvider } from "@/hooks/useSSE";
 import OverlayBody from "@/components/layouts/overlay-body";
 import OverlayTop from "@/components/layouts/overlay-top";
 import OverlayRight from "@/components/layouts/overlay-right";
+import { fetchGET } from "@/utils";
+import { User } from "@/types/user";
+import { Product } from "@/types/product";
 
 export default async function SiteLayout({ children }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const hdrs = headers();
-  const host = hdrs.get("host") || "localhost:3000";
-  const proto = hdrs.get("x-forwarded-proto") || "http";
-  const base = `${proto}://${host}`;
-  const cookie = hdrs.get("cookie") ?? "";
+  const profileRes = await fetchGET<{ user: User }>(
+    "/api/auth/profile",
+    { cache: "no-store" }
+  );
+  const productRes = await fetchGET<{ products: Product[] }>(
+    "/api/images/products"
+  )
 
-  const [profileResp, productsResp] = await Promise.all([
-    fetch(`${base}/api/auth/profile`, { headers: { Cookie: cookie }, cache: "no-store" }),
-    fetch(`${base}/api/images/products`, { headers: { Cookie: cookie }, cache: "no-store" }),
-  ]);
-
-  const profileJson = await profileResp.json().catch(() => ({ data: null }));
-  const productsJson = await productsResp.json().catch(() => ({ data: null }));
-
-  const profileData = profileJson?.data ?? null;
-  const productData = productsJson?.data ?? null;
-
-  if (!profileData?.user || !productData?.products) {
+  if (!profileRes.success) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -46,8 +37,8 @@ export default async function SiteLayout({ children }: Readonly<{
   }
 
   return (
-    <ProfileProvider data={profileData.user}>
-    <ProductProvider data={productData.products}>
+    <ProfileProvider data={profileRes.data!.user!}>
+    <ProductProvider data={productRes.data!.products!}>
     <SSEProvider>
     <NotificationProvider>
     <ModalProvider>

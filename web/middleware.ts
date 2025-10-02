@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { cookies, headers } from "next/headers";
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const missing: string[] = [];
   if (!process.env.GATEWAY_URL) missing.push("GATEWAY_URL");
   if (!process.env.NOTIFICATION_URL) missing.push("NOTIFICATION_URL");
@@ -18,10 +19,17 @@ export function middleware(req: NextRequest) {
     });
   }
 
+  console.log(req.headers.getSetCookie());
+
   const requestHeaders = new Headers(req.headers);
   const origin = new URL(req.url).origin;
   requestHeaders.set("Origin", origin);
   requestHeaders.set("Content-Type", "application/json");
+
+  const cookie = await cookies();
+  console.log(req.cookies.getAll());
+  console.log(cookie.getAll());
+
 
   return NextResponse.next({
     request: {

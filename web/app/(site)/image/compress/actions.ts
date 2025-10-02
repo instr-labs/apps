@@ -1,7 +1,7 @@
 "use server"
 
 import { API_IMAGES } from "@/constants/api";
-import { ApiResponse, fetchGET, fetchPOST, fetchPOSTFormData } from "@/utils/fetch";
+import { ApiResponse, fetchGET, fetchPOST, fetchPOSTFormData } from "@/utils/fetchServer";
 
 export type Instruction = {
   id: string;
