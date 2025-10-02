@@ -121,20 +121,23 @@ function FormPin({ email, next }: {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, pin: values.join("") }),
       });
-      const json = await res.json();
-      if (json.success) {
-        next();
-      } else {
+      const data = await res.json();
+      if (!res.ok) {
         showNotification({
           type: "error",
-          message: json.message || "Login failed",
+          message: data?.message || "Login failed",
         });
+        return;
       }
+
+      next();
     } catch (e) {
-      showNotification({ type: "error", message: e instanceof Error ? e.message : "Login failed" });
+      showNotification({
+        type: "error",
+        message: e instanceof Error ? e.message : "Login failed"
+      });
     } finally {
       setLoading(false);
     }
