@@ -24,10 +24,7 @@ export const SSEProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   useEffect(() => {
     async function start() {
-      const url = "/api/notifications/sse";
-      const res = await fetch(url, {
-        cache: "no-store",
-      });
+      const res = await fetch("/api/notifications/sse");
 
       if (!res.ok) {
         console.warn("SSE connection failed:", res.status, res.statusText);
@@ -50,19 +47,13 @@ export const SSEProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           const text = decoder.decode(value, { stream: true });
           const lines = text.split(/\r?\n/).filter(Boolean);
           if (lines.length === 0) continue;
-          // Basic SSE parsing for lines like: "event: <name>" and "data: <json>"
           const eventLine = lines.find(l => l.startsWith("event:"));
           const dataLine = lines.find(l => l.startsWith("data:"));
           const eventName = eventLine ? eventLine.slice(6).trimStart() : "message";
           const dataText = dataLine ? dataLine.slice(5).trimStart() : "{}";
-          try {
-            const data = JSON.parse(dataText);
-            setMessage({ eventName, data });
-          } catch {
-            // ignore non-JSON data lines
-          }
+          const data = JSON.parse(dataText);
+          setMessage({ eventName, data });
         }
-
       } catch (err) {
         console.warn("SSE connection error:", err);
       } finally {

@@ -19,17 +19,13 @@ export async function middleware(req: NextRequest) {
     });
   }
 
-  console.log(req.headers.getSetCookie());
-
   const requestHeaders = new Headers(req.headers);
   const origin = new URL(req.url).origin;
   requestHeaders.set("Origin", origin);
   requestHeaders.set("Content-Type", "application/json");
 
   const cookie = await cookies();
-  console.log(req.cookies.getAll());
-  console.log(cookie.getAll());
-
+  requestHeaders.set("Cookie", cookie.toString());
 
   return NextResponse.next({
     request: {

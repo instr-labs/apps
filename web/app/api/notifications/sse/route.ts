@@ -3,49 +3,18 @@ import { NextRequest } from "next/server";
 export const runtime = "nodejs"; // ensure Node runtime for streaming
 
 export async function GET(req: NextRequest) {
-  const targetBase = process.env.NOTIFICATION_URL;
-  if (!targetBase) {
-    return new Response("NOTIFICATION_URL is not configured", { status: 500 });
-  }
+  const base = process.env.NOTIFICATION_URL;
+  const url = `${base}/sse`;
 
-  const targetUrl = targetBase.replace(/\/$/, "") + "/sse";
+  req.headers.set("Connection", "keep-alive");
+  req.headers.set("Cache-Control", "no-cache, no-transform");
+  req.headers.set("Accept", "text/event-stream");
 
-  const origin = req.headers.get("origin") ?? new URL(req.url).origin;
-
-  let upstream: Response;
-  try {
-    upstream = await fetch(targetUrl, {
-      method: "GET",
-      headers: {
-        // Accept helps some servers gate SSE
-        Accept: "text/event-stream",
-        Origin: origin,
-        // Avoid compression as it can interfere with SSE chunking
-        "Accept-Encoding": "identity",
-      },
-      // Abort upstream if client disconnects
-      signal: req.signal,
-      redirect: "follow",
-      cache: "no-store",
-    });
-  } catch (e) {
-    return new Response(`Failed to connect upstream: ${e instanceof Error ? e.message : String(e)}` , { status: 502 });
-  }
-
-  if (!upstream.ok || !upstream.body) {
-    const text = await upstream.text().catch(() => upstream.statusText);
-    return new Response(text || "Upstream error", { status: upstream.status || 502 });
-  }
-
-  // Prepare SSE response headers
-  const resHeaders = new Headers();
-  resHeaders.set("Content-Type", upstream.headers.get("content-type") ?? "text/event-stream; charset=utf-8");
-  resHeaders.set("Cache-Control", "no-cache, no-transform");
-  resHeaders.set("Connection", "keep-alive");
-
-  // Stream upstream body directly to the client
-  return new Response(upstream.body, {
-    status: 200,
-    headers: resHeaders,
+  return await fetch(url, {
+    method: "GET",
+    headers: req.headers,
+    signal: req.signal,
+    redirect: "follow",
+    cache: "no-store",
   });
 }

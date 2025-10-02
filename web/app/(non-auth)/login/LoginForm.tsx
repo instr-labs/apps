@@ -10,6 +10,7 @@ import InputPin from "@/components/inputs/input-pin";
 import useNotification from "@/hooks/useNotification";
 import InlineSpinner from "@/components/feedback/InlineSpinner";
 import { useRouter } from "next/navigation";
+import { fetchPOST } from "@/utils/fetchClient";
 
 type FormEmailValues = {
   email: string;
@@ -50,16 +51,15 @@ function FormEmail({ setEmail, next }: {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/send-pin", {
-        method: "POST",
-        body: JSON.stringify({ email: values.email }),
-      });
+      const res = await fetchPOST(
+        "/api/auth/send-pin",
+        { email: values.email }
+      );
 
-      const data = await res.json();
-      if (!res.ok) {
+      if (!res.success) {
         showNotification({
           type: "error",
-          message: data.message || "Failed to send PIN",
+          message: res.message || "Failed to send PIN",
         });
         return;
       }
@@ -119,15 +119,15 @@ function FormPin({ email, next }: {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, pin: values.join("") }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
+      const res = await fetchPOST(
+        "/api/auth/login",
+        { email, pin: values.join("") }
+      );
+
+      if (!res.success) {
         showNotification({
           type: "error",
-          message: data?.message || "Login failed",
+          message: res.message || "Login failed",
         });
         return;
       }
