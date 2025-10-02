@@ -52,22 +52,25 @@ function FormEmail({ setEmail, next }: {
     try {
       const res = await fetch("/api/auth/send-pin", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: values.email }),
       });
-      const json = await res.json();
-      console.log("res", json);
-      if (json.success) {
-        setEmail(values.email);
-        next();
-      } else {
+
+      const data = await res.json();
+      if (!res.ok) {
         showNotification({
           type: "error",
-          message: json.message || "Failed to send PIN",
+          message: data.message || "Failed to send PIN",
         });
+        return;
       }
+
+      setEmail(values.email);
+      next();
     } catch (e) {
-      showNotification({ type: "error", message: e instanceof Error ? e.message : "Failed to send PIN" });
+      showNotification({
+        type: "error",
+        message: e instanceof Error ? e.message : "Failed to send PIN"
+      });
     } finally {
       setLoading(false);
     }
