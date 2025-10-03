@@ -96,7 +96,7 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 			})
 		}
 
-		if accessToken != "" && refreshToken == "" && c.Path() == "/auth/refresh" {
+		if refreshToken != "" && c.Path() == "/auth/refresh" {
 			c.Request().Header.Set("X-User-Refresh", refreshToken)
 		}
 
