@@ -195,7 +195,7 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 func (h *UserHandler) RefreshToken(c *fiber.Ctx) error {
 	log.Info("RefreshToken: Processing token refresh request")
 
-	refreshToken := c.Cookies("RefreshToken")
+	refreshToken := c.Get("X-User-Refresh")
 	log.Infof("RefreshToken: Refresh token: %s", refreshToken)
 	user := h.userRepo.FindByRefreshToken(refreshToken)
 	if user == nil || user.ID.IsZero() {

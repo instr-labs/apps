@@ -41,7 +41,9 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 			origin := c.Get("Origin")
 			if !isAllowedOrigin(origin, cfg.Origins) {
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-					"error": "FORBIDDEN_ORIGIN",
+					"message": "FORBIDDEN_ORIGIN",
+					"errors":  nil,
+					"data":    nil,
 				})
 			}
 		}
@@ -66,6 +68,7 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 				c.Request().Header.Set("X-Authenticated", "true")
 				c.Request().Header.Set("X-User-Id", info.UserID)
 				c.Request().Header.Set("X-User-Roles", strings.Join(info.Roles, ","))
+				c.Request().Header.Set("X-User-Refresh", refreshToken)
 				c.Request().Header.Set("X-Origin", origin)
 			} else {
 				if errors.Is(err, ErrTokenExpired) {
