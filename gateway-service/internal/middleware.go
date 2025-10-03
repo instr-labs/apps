@@ -26,7 +26,7 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.Origins,
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
-		AllowHeaders:     "Origin, Content-Type, X-Authenticated, X-User-Id, X-User-Roles, X-User-Refresh, X-Origin",
+		AllowHeaders:     "Origin, Content-Type",
 		AllowCredentials: true,
 	}))
 
@@ -68,7 +68,6 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 				c.Request().Header.Set("X-Authenticated", "true")
 				c.Request().Header.Set("X-User-Id", info.UserID)
 				c.Request().Header.Set("X-User-Roles", strings.Join(info.Roles, ","))
-				c.Request().Header.Set("X-User-Refresh", refreshToken)
 				c.Request().Header.Set("X-Origin", origin)
 			} else {
 				if errors.Is(err, ErrTokenExpired) {
@@ -95,6 +94,10 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 				"errors":  nil,
 				"data":    nil,
 			})
+		}
+
+		if accessToken != "" && refreshToken == "" && c.Path() == "/auth/refresh" {
+			c.Request().Header.Set("X-User-Refresh", refreshToken)
 		}
 
 		c.Request().Header.Set("X-Gateway", "true")
