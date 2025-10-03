@@ -52,7 +52,8 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 	// AUTH
 	app.Use(func(c *fiber.Ctx) error {
 		origin := c.Get("Origin")
-		token := c.Cookies("AccessToken")
+		accessToken := c.Cookies("AccessToken")
+		refreshToken := c.Cookies("RefreshToken")
 
 		c.Request().Header.Del("Cookie")
 		c.Request().Header.Del("X-Authenticated")
@@ -60,8 +61,8 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 		c.Request().Header.Del("X-User-Roles")
 		c.Request().Header.Del("X-Origin")
 
-		if token != "" {
-			if info, err := ExtractTokenInfo(cfg.JWTSecret, token); err == nil {
+		if accessToken != "" {
+			if info, err := ExtractTokenInfo(cfg.JWTSecret, accessToken); err == nil {
 				c.Request().Header.Set("X-Authenticated", "true")
 				c.Request().Header.Set("X-User-Id", info.UserID)
 				c.Request().Header.Set("X-User-Roles", strings.Join(info.Roles, ","))
@@ -69,12 +70,28 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 			} else {
 				if errors.Is(err, ErrTokenExpired) {
 					return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-						"error": "EXPIRED_TOKEN",
+						"message": err.Error(),
+						"errors":  nil,
+						"data":    nil,
 					})
+				}
+
+				if errors.Is(err, ErrTokenInvalid) {
+					c.ClearCookie("AccessToken")
+					c.ClearCookie("RefreshToken")
+					return c.Redirect("/login", 302)
 				}
 
 				c.Request().Header.Set("X-Authenticated", "false")
 			}
+		}
+
+		if accessToken == "" && refreshToken != "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": ErrTokenExpired.Error(),
+				"errors":  nil,
+				"data":    nil,
+			})
 		}
 
 		c.Request().Header.Set("X-Gateway", "true")
