@@ -278,10 +278,11 @@ func (h *UserHandler) GoogleLogin(c *fiber.Ctx) error {
 		},
 		Endpoint: google.Endpoint,
 	}
-	url := conf.AuthCodeURL(state)
-	log.Infof("GoogleLogin: Redirecting to Google OAuth URL: %s", url)
 
-	return c.Redirect(url)
+	redirectUrl := conf.AuthCodeURL(state)
+	log.Infof("GoogleLogin: Redirecting to Google OAuth URL: %s", redirectUrl)
+
+	return c.Redirect(redirectUrl)
 }
 
 func (h *UserHandler) GoogleCallback(c *fiber.Ctx) error {
