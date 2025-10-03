@@ -86,7 +86,7 @@ func SetupMiddleware(app *fiber.App, cfg *Config) {
 			}
 		}
 
-		if accessToken == "" && refreshToken != "" {
+		if accessToken == "" && refreshToken != "" && c.Path() != "/auth/refresh" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"message": ErrTokenExpired.Error(),
 				"errors":  nil,
