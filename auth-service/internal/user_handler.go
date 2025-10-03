@@ -196,6 +196,7 @@ func (h *UserHandler) RefreshToken(c *fiber.Ctx) error {
 	log.Info("RefreshToken: Processing token refresh request")
 
 	refreshToken := c.Cookies("RefreshToken")
+	log.Infof("RefreshToken: Refresh token: %s", refreshToken)
 	user := h.userRepo.FindByRefreshToken(refreshToken)
 	if user == nil || user.ID.IsZero() {
 		log.Warn("RefreshToken: Invalid refresh token")
