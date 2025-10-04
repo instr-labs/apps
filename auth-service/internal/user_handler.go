@@ -201,11 +201,9 @@ func (h *UserHandler) RefreshToken(c *fiber.Ctx) error {
 	user := h.userRepo.FindByRefreshToken(decodedToken)
 	if user == nil || user.ID.IsZero() {
 		log.Warn("RefreshToken: Invalid refresh token")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": ErrInvalidToken,
-			"errors":  nil,
-			"data":    nil,
-		})
+		c.ClearCookie("AccessToken")
+		c.ClearCookie("RefreshToken")
+		return c.Redirect(h.cfg.WebUrl+"/login", fiber.StatusFound)
 	}
 
 	newAccessToken, err := h.generateAccessToken(user.ID.Hex(), []string{"user"})
